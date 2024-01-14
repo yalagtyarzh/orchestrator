@@ -28,6 +28,7 @@ const (
 
 type Task struct {
 	ID            uuid.UUID
+	ContainerId   string
 	Name          string
 	State         State
 	Image         string
@@ -48,6 +49,9 @@ type TaskEvent struct {
 }
 
 type Config struct {
+	Runtime struct {
+		ContainerID string
+	}
 	Name          string
 	AttachStdin   bool
 	AttachStdout  bool
@@ -61,9 +65,8 @@ type Config struct {
 }
 
 type Docker struct {
-	Client      *client.Client
-	Config      Config
-	ContainerId string
+	Client *client.Client
+	Config Config
 }
 
 type DockerResult struct {
@@ -113,7 +116,7 @@ func (d *Docker) Run() DockerResult {
 		return DockerResult{Error: err}
 	}
 
-	d.ContainerId = resp.ID
+	d.Config.Runtime.ContainerID = resp.ID
 	out, err := d.Client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		log.Printf("Error getting logs for container %s: %v\n", d.Config.Image, err)
@@ -129,16 +132,16 @@ func (d *Docker) Run() DockerResult {
 	}
 }
 
-func (d *Docker) Stop(id string) DockerResult {
-	log.Printf("Attempting to stop container: %v", id)
+func (d *Docker) Stop() DockerResult {
+	log.Printf("Attempting to stop container: %v", d.Config.Runtime.ContainerID)
 	ctx := context.Background()
-	err := d.Client.ContainerStop(ctx, id, container.StopOptions{})
+	err := d.Client.ContainerStop(ctx, d.Config.Runtime.ContainerID, container.StopOptions{})
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
 
-	err = d.Client.ContainerRemove(ctx, id, types.ContainerRemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: false})
+	err = d.Client.ContainerRemove(ctx, d.Config.Runtime.ContainerID, types.ContainerRemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: false})
 	if err != nil {
 		panic(err)
 	}

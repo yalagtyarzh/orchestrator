@@ -6,6 +6,7 @@ import (
 	"orchestrator/node"
 	"orchestrator/task"
 	"orchestrator/worker"
+	"os"
 	"time"
 
 	"github.com/golang-collections/collections/queue"
@@ -65,6 +66,18 @@ func main() {
 	}
 
 	fmt.Printf("node: %v\n", n)
+
+	fmt.Printf("create a test container\n")
+
+	dockerTask, res := createContainer()
+	if res.Error != nil {
+		fmt.Printf("%v", res.Error)
+		os.Exit(1)
+	}
+
+	time.Sleep(time.Second * 5)
+	fmt.Printf("stopping container %s\n", res.ContainerId)
+	_ = stopContainer(dockerTask)
 }
 
 func createContainer() (*task.Docker, *task.DockerResult) {
@@ -86,7 +99,7 @@ func createContainer() (*task.Docker, *task.DockerResult) {
 	result := d.Run()
 	if result.Error != nil {
 		fmt.Printf("%v\n", result.Error)
-		return nil, nil
+		return nil, &result
 	}
 
 	fmt.Printf("Container %s is running with config %v\n", result.ContainerId, c)
@@ -94,10 +107,10 @@ func createContainer() (*task.Docker, *task.DockerResult) {
 }
 
 func stopContainer(d *task.Docker) *task.DockerResult {
-	result := d.Stop(d.ContainerId)
+	result := d.Stop()
 	if result.Error != nil {
 		fmt.Printf("%v\n", result.Error)
-		return nil
+		return &result
 	}
 
 	fmt.Printf("Container %s has been stopped and removed\n", result.ContainerId)
