@@ -46,10 +46,10 @@ func (w *Worker) RunTask() task.DockerResult {
 		case task.Completed:
 			result = w.StopTask(taskQueued)
 		default:
-			result.Error = errors.New("We should not get here")
+			result.Error = errors.New("we should not get here")
 		}
 	} else {
-		err := fmt.Errorf("Invalid transition from %v to %v", taskPersisted.State, taskQueued.State)
+		err := fmt.Errorf("invalid transition from %v to %v", taskPersisted.State, taskQueued.State)
 		result.Error = err
 	}
 	return result
