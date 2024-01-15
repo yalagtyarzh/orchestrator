@@ -55,13 +55,27 @@ type Config struct {
 	Name          string
 	AttachStdin   bool
 	AttachStdout  bool
-	AttachSterr   bool
+	AttachStderr  bool
 	Cmd           []string
 	Image         string
 	Memory        int
 	Disk          int
 	Env           []string
 	RestartPolicy string
+}
+
+func NewConfig(t *Task) Config {
+	return Config{
+		Runtime:       struct{ ContainerID string }{ContainerID: t.ContainerId},
+		Name:          t.Name,
+		AttachStdin:   true,
+		AttachStdout:  true,
+		AttachStderr:  true,
+		Image:         t.Image,
+		Memory:        t.Memory,
+		Disk:          t.Disk,
+		RestartPolicy: t.RestartPolicy,
+	}
 }
 
 type Docker struct {

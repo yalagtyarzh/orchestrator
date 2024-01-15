@@ -36,13 +36,17 @@ func main() {
 
 	w := worker.Worker{
 		Queue: *queue.New(),
-		Db:    make(map[uuid.UUID]task.Task),
+		Db:    make(map[uuid.UUID]*task.Task),
 	}
 	fmt.Printf("worker: %v\n", w)
 	w.CollectStats()
 	w.RunTask()
-	w.StartTask()
-	w.StopTask()
+	w.StartTask(t)
+	result := w.StopTask(t)
+	if result.Error != nil {
+		fmt.Printf("%v", result.Error)
+		os.Exit(1)
+	}
 
 	m := manager.Manager{
 		Pending: *queue.New(),
